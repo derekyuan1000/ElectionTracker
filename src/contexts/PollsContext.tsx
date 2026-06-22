@@ -24,11 +24,10 @@ export function PollsProvider({ children }: { children: ReactNode }) {
   const query = useQuery({
     queryKey: ["wiki-polls"],
     queryFn: fetchWikipolls,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000,
     retry: 2,
   });
 
-  // Merge Wikipedia institutes with seed institutes (seed reliability scores win on conflict)
   const seedInstMap = new Map(seedInstitutes.map((i) => [i.id, i]));
   const mergedInstitutes: Institute[] = [...seedInstitutes];
   if (query.data?.institutes) {

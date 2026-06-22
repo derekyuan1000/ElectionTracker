@@ -19,6 +19,7 @@ import { usePollsContext } from "@/contexts/PollsContext";
 import { BLOC_LABEL, BLOC_COLOR, type Bloc } from "@/data/types";
 import { partyColor } from "@/lib/partyColor";
 import { fmtCountdown, fmtDate } from "@/lib/format";
+import { useWikiLeaders, pmNamesMatch } from "@/lib/useWikiLeaders";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,6 +62,7 @@ const BLOC_LEGEND: { bloc: Bloc; meaning: string }[] = [
 
 function Home() {
   const { polls, institutes } = usePollsContext();
+  const wikiLeaders = useWikiLeaders();
   const trend = computeTrend(undefined, polls);
   const deltas = deltaSinceLastElection(undefined, polls);
   const mom30 = momentum30d(undefined, polls);
@@ -217,18 +219,42 @@ function Home() {
           </p>
           <dl className="mt-6 grid grid-cols-2 gap-y-3 text-sm">
             <dt className="text-muted-ink">Head of State</dt>
-            <dd className="text-ink">King Charles III</dd>
+            <dd className="text-ink">{wikiLeaders.monarch ?? "King Charles III"}</dd>
             <dt className="text-muted-ink">Prime Minister</dt>
             <dd className="text-ink">
-              {country.headOfGovernment.name} (
-              <Link
-                to="/political-parties/$party"
-                params={{ party: country.headOfGovernment.partyId }}
-                className="text-brand hover:text-brand-active transition-colors"
-              >
-                {partyById(country.headOfGovernment.partyId)?.abbr}
-              </Link>
-              )
+              {(() => {
+                const seed = country.headOfGovernment;
+                const wiki = wikiLeaders.pm;
+                const seedResigned = !!seed.resignedDate;
+                const wikiIsNew = wiki && !pmNamesMatch(wiki, seed.name);
+                if (wikiIsNew) {
+                  return (
+                    <>
+                      {wiki}{" "}
+                      <span className="text-xs text-muted-ink font-mono">
+                        (prev: {seed.name} — resigned)
+                      </span>
+                    </>
+                  );
+                }
+                return (
+                  <>
+                    {seed.name}{" "}
+                    {seedResigned && (
+                      <span className="text-xs text-down font-mono">(resigned)</span>
+                    )}{" "}
+                    (
+                    <Link
+                      to="/political-parties/$party"
+                      params={{ party: seed.partyId }}
+                      className="text-brand hover:text-brand-active transition-colors"
+                    >
+                      {partyById(seed.partyId)?.abbr}
+                    </Link>
+                    )
+                  </>
+                );
+              })()}
             </dd>
             <dt className="text-muted-ink">Government type</dt>
             <dd className="text-ink">{country.governmentType}</dd>

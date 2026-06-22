@@ -70,7 +70,13 @@ export type Country = {
   governmentType: string;
   turnoutTrend: number[];
   governingParties: string[]; // party ids
-  headOfGovernment: { name: string; title: string; partyId: string; since: string; resignedDate?: string };
+  headOfGovernment: {
+    name: string;
+    title: string;
+    partyId: string;
+    since: string;
+    resignedDate?: string;
+  };
 };
 
 export type Party = {

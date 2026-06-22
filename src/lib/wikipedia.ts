@@ -48,11 +48,6 @@ function cleanText(el: Element): string {
   return (el.textContent ?? "").replace(/\[[\w\s\d]+\]/g, "").trim();
 }
 
-/**
- * Parse a fieldwork date string into ISO "YYYY-MM-DD".
- * Wikipedia uses formats like "17–19 Jun" (no year) and "27–29 May 2026" (with year).
- * When no year is present, infer it: try current year first, then previous years.
- */
 function parseFieldworkEnd(dateStr: string): string | null {
   const s = dateStr
     .replace(/\[.*?\]/g, "")
@@ -64,15 +59,12 @@ function parseFieldworkEnd(dateStr: string): string | null {
     return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
   };
 
-  // "1-7 Jan 2026" → end date "7 Jan 2026"
   const rangeYear = s.match(/\d+\s*-\s*(\d+)\s+([A-Za-z]+)\s+(\d{4})/);
   if (rangeYear) return toISO(rangeYear[1], rangeYear[2], rangeYear[3]);
 
-  // "7 Jan 2026"
   const singleYear = s.match(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/);
   if (singleYear) return toISO(singleYear[1], singleYear[2], singleYear[3]);
 
-  // "Jan 2026" → last day of that month
   const monthYear = s.match(/([A-Za-z]+)\s+(\d{4})/);
   if (monthYear) {
     const d = new Date(`1 ${monthYear[1]} ${monthYear[2]}`);
@@ -82,7 +74,6 @@ function parseFieldworkEnd(dateStr: string): string | null {
     }
   }
 
-  // No year — infer: try current year, then up to 2 years back
   const now = new Date();
   const inferYear = (day: string, month: string): string | null => {
     for (let offset = 0; offset <= 2; offset++) {
@@ -90,17 +81,14 @@ function parseFieldworkEnd(dateStr: string): string | null {
       const iso = toISO(day, month, String(year));
       if (!iso) continue;
       const diff = (now.getTime() - new Date(iso).getTime()) / 86400000;
-      // Accept dates in the past or today only, up to 14 months back
       if (diff >= 0 && diff <= 425) return iso;
     }
     return null;
   };
 
-  // "1-7 Jun" (range, no year)
   const rangeNoYear = s.match(/\d+\s*-\s*(\d+)\s+([A-Za-z]+)/);
   if (rangeNoYear) return inferYear(rangeNoYear[1], rangeNoYear[2]);
 
-  // "7 Jun" (single, no year)
   const singleNoYear = s.match(/(\d+)\s+([A-Za-z]+)/);
   if (singleNoYear) return inferYear(singleNoYear[1], singleNoYear[2]);
 

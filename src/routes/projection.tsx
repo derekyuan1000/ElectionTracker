@@ -24,9 +24,6 @@ export const Route = createFileRoute("/projection")({
 const TOTAL = country.parliamentSize;
 const MAJORITY = country.majorityThreshold;
 
-// ── Canvas hemicycle ──────────────────────────────────────────────────────────
-// 10 rows x 65 cols = 650 seats. Column-major fill, left -> right by spectrum.
-// Canvas logical size 640 x 295; dots drawn via 2D context (no SVG elements).
 const C_W = 640;
 const C_H = 295;
 const C_CX = 320;
@@ -36,11 +33,8 @@ const C_STEP = 12;
 const C_ROWS = 10;
 const C_COLS = 65;
 const C_DOT_R = 3;
-const C_OUTER = C_INNER + (C_ROWS - 1) * C_STEP; // 248
+const C_OUTER = C_INNER + (C_ROWS - 1) * C_STEP;
 
-// All 650 positions computed once at module load.
-// angle = PI -> PI/2 -> 0 (left to right over the top);
-// canvas y-coord: y = cy - r*sin(a)  (y-down coordinate system)
 const C_POS: { x: number; y: number }[] = (() => {
   const out: { x: number; y: number }[] = [];
   for (let i = 0; i < 650; i++) {
@@ -52,7 +46,6 @@ const C_POS: { x: number; y: number }[] = (() => {
   }
   return out;
 })();
-// ─────────────────────────────────────────────────────────────────────────────
 
 const BLOC_SPECTRUM: Record<string, number> = {
   farleft: 0,
@@ -101,7 +94,6 @@ function buildDotColors(seats: Record<string, number>): string[] {
   return colors;
 }
 
-// Canvas parliament — drawing 650 dots directly is ~10x faster than 650 SVG circles.
 const ParliamentCanvas = memo(function ParliamentCanvas({
   seats,
 }: {
@@ -311,7 +303,6 @@ function ProjectionPage() {
     (id) => Math.abs((shares[id] ?? 0) - (baseline[id] ?? 0)) > 0.05,
   );
 
-  // Stable ref for locked set so applyChange callback is never recreated.
   const lockedRef = useRef(locked);
   lockedRef.current = locked;
 

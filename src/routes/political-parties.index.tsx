@@ -34,7 +34,6 @@ const COMPASS_TOGGLES = [
   "reform-uk",
 ];
 
-// NI and other sub-national parties that sit outside the GB topline
 const REGIONAL_IDS = new Set(["dup", "sinn-fein", "sdlp", "alliance"]);
 
 function PartiesIndex() {

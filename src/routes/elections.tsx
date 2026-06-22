@@ -4,6 +4,7 @@ import { SectionTitle } from "@/components/site/SectionTitle";
 import { country, elections, partyById } from "@/data/seed";
 import { partyColor } from "@/lib/partyColor";
 import { fmtDate } from "@/lib/format";
+import { useWikiLeaders, pmNamesMatch } from "@/lib/useWikiLeaders";
 
 export const Route = createFileRoute("/elections")({
   head: () => ({
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/elections")({
 
 function ElectionsPage() {
   const uk = elections["united-kingdom"];
+  const wikiLeaders = useWikiLeaders();
   return (
     <div className="mx-auto max-w-5xl px-6 py-14 space-y-12">
       <SectionTitle
@@ -42,7 +44,9 @@ function ElectionsPage() {
             <div className="text-xs font-mono uppercase tracking-wider text-muted-ink">
               Head of State
             </div>
-            <div className="mt-1 text-ink font-display text-xl">King Charles III</div>
+            <div className="mt-1 text-ink font-display text-xl">
+              {wikiLeaders.monarch ?? "King Charles III"}
+            </div>
             <div className="mt-1 text-body-ink">Acceded 8 September 2022.</div>
           </div>
           <div>
@@ -50,13 +54,37 @@ function ElectionsPage() {
               Prime Minister
             </div>
             <div className="mt-1 text-ink font-display text-xl">
-              {country.headOfGovernment.name}{" "}
-              <span className="text-muted-ink text-base">
-                ({partyById(country.headOfGovernment.partyId)?.name})
-              </span>
+              {(() => {
+                const seed = country.headOfGovernment;
+                const wiki = wikiLeaders.pm;
+                const wikiIsNew = wiki && !pmNamesMatch(wiki, seed.name);
+                if (wikiIsNew) return wiki;
+                return seed.name;
+              })()}{" "}
+              {(() => {
+                const seed = country.headOfGovernment;
+                const wiki = wikiLeaders.pm;
+                const wikiIsNew = wiki && !pmNamesMatch(wiki, seed.name);
+                if (!wikiIsNew && seed.resignedDate) {
+                  return <span className="text-down text-base font-mono">(resigned)</span>;
+                }
+                return (
+                  <span className="text-muted-ink text-base">
+                    ({partyById(seed.partyId)?.name})
+                  </span>
+                );
+              })()}
             </div>
             <div className="mt-1 text-body-ink">
-              In office since {fmtDate(country.headOfGovernment.since)}.
+              {(() => {
+                const seed = country.headOfGovernment;
+                const wiki = wikiLeaders.pm;
+                const wikiIsNew = wiki && !pmNamesMatch(wiki, seed.name);
+                if (wikiIsNew) return `Current Prime Minister.`;
+                if (seed.resignedDate)
+                  return `In office ${fmtDate(seed.since)} – ${fmtDate(seed.resignedDate)}.`;
+                return `In office since ${fmtDate(seed.since)}.`;
+              })()}
             </div>
           </div>
         </div>

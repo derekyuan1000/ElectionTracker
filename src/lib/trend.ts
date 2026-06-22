@@ -19,12 +19,6 @@ function ageDays(iso: string): number {
 
 export type TrendPoint = { partyId: string; pct: number; moe: number };
 
-/**
- * Weighted polling average.
- *   weight(poll) = exp(-age_days / 21) * (reliability / 100)
- *   trend(party) = Σ(weight_i * pct_i) / Σ(weight_i)
- *   moe(party)   = 1.96 * stddev(pct_i, weighted) / sqrt(effective_n)
- */
 export function computeTrend(_country?: string, customPolls?: Poll[]): TrendPoint[] {
   const ps = polledParties();
   const inst = Object.fromEntries(ALL_INST.map((i) => [i.id, i]));
@@ -111,7 +105,6 @@ export function momentum90d(_country?: string, customPolls?: Poll[]) {
     .sort((a, b) => b.swing - a.swing);
 }
 
-/** D'Hondt seat allocation given vote shares and total seats; ignores parties below threshold. */
 export function dhondt(
   shares: { partyId: string; pct: number }[],
   totalSeats: number,
@@ -134,13 +127,6 @@ export function dhondt(
   return seats;
 }
 
-/**
- * Seat projection.
- * For NL: D'Hondt at the one-seat quota.
- * For UK / FR (single-member districts) we use a transparent demo proxy:
- * proportional with a 5% effective bonus to the leading party, rounded to integers
- * — explicitly labelled as a "first-order proxy" on the methodology page.
- */
 export function seatProjection(_country?: string, customPolls?: Poll[]) {
   const country = UK;
   const trend = computeTrend(_country, customPolls);
@@ -175,7 +161,6 @@ export function wouldGovHoldMajority(_country?: string, customPolls?: Poll[]) {
   return { total, threshold: country.majorityThreshold, holds: total >= country.majorityThreshold };
 }
 
-/** Time-series of weighted trend, monthly bins, for the last ~12 months. */
 export function trendSeries(_country?: string, customPolls?: Poll[]) {
   const ps = polledParties();
   const inst = Object.fromEntries(ALL_INST.map((i) => [i.id, i]));
@@ -218,7 +203,6 @@ export function partyTrendSeries(partyId: string, customPolls?: Poll[]) {
   }));
 }
 
-/** Institute reliability = stored score (transparent: based on past-election accuracy + cross-institute deviation). */
 export function instituteAccuracyLabel(score: number): string {
   if (score >= 84) return "Highly Accurate";
   if (score >= 78) return "Reliable";
@@ -226,8 +210,6 @@ export function instituteAccuracyLabel(score: number): string {
   return "Low Accuracy";
 }
 
-// Left-right positions used to score ideological proximity between coalition partners.
-// "other" is placed at centre (5) so it doesn't artificially inflate or deflate scores.
 const BLOC_ORDER: Record<string, number> = {
   farleft: 0,
   left: 1,
@@ -250,9 +232,6 @@ export type CoalitionScenario = {
   likelihood: "high" | "medium" | "low";
 };
 
-/** Coalition ranking: enumerate 2- and 3-party combos that reach majority.
- *  Sorted by likelihood (ideological compatibility + poll-leader bonus) then
- *  by seats descending so the biggest viable coalition shows first within each tier. */
 export function coalitionScenarios(_country?: string, customPolls?: Poll[]): CoalitionScenario[] {
   const country = UK;
   const seats = seatProjection(_country, customPolls);
@@ -272,12 +251,9 @@ export function coalitionScenarios(_country?: string, customPolls?: Poll[]): Coa
     const key = ids.slice().sort().join("|");
     if (scored.some((c) => c.ids.slice().sort().join("|") === key)) return;
 
-    // Ideological proximity: 10 = same bloc, 0 = maximum spectrum distance
     const positions = ids.map((id) => BLOC_ORDER[partyById(id)?.bloc ?? "other"] ?? 5);
     const maxDist = Math.max(...positions) - Math.min(...positions);
     const ideologyScore = Math.max(0, 10 - maxDist);
-
-    // Poll bonus: +2 if this coalition includes the current polling leader
     const leadBonus = ids.includes(leadPartyId) ? 2 : 0;
 
     const score = ideologyScore + leadBonus;
