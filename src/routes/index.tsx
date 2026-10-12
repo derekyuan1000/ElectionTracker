@@ -4,6 +4,9 @@ import { TrendBar } from "@/components/site/TrendBar";
 import { SeatBar } from "@/components/site/SeatBar";
 import { Delta } from "@/components/site/Delta";
 import { SectionTitle } from "@/components/site/SectionTitle";
+import { TrendChart } from "@/components/site/TrendChart";
+import { Reveal } from "@/components/site/Reveal";
+import { CountUp } from "@/components/site/CountUp";
 import {
   computeTrend,
   deltaSinceLastElection,
@@ -61,7 +64,7 @@ const BLOC_LEGEND: { bloc: Bloc; meaning: string }[] = [
 ];
 
 function Home() {
-  const { polls, institutes } = usePollsContext();
+  const { polls, institutes, lastUpdated, isFetching } = usePollsContext();
   const wikiLeaders = useWikiLeaders();
   const trend = computeTrend(undefined, polls);
   const deltas = deltaSinceLastElection(undefined, polls);
@@ -76,15 +79,15 @@ function Home() {
   const gainer = mom90.filter((m) => m.partyId !== "others")[0];
   const loser = mom30.filter((m) => m.partyId !== "others").slice(-1)[0];
   const coalitions = coalitionScenarios(undefined, polls);
-  const recentPolls = polls.slice(0, 5);
+  const recentPolls = polls.slice(0, 6);
 
   return (
     <div className="mx-auto max-w-6xl px-6">
       {/* Hero */}
-      <section className="pt-16 pb-10 border-b border-hairline">
+      <section className="pt-16 pb-10 border-b border-hairline stagger">
         <div className="flex items-center gap-3 text-xs font-mono uppercase tracking-widest text-muted-ink">
-          <span className="text-brand">●</span>
-          <span>As of: {fmtDate(AS_OF)}</span>
+          <span className="text-brand animate-pulse-dot inline-block">●</span>
+          <span>As of: {fmtDate(lastUpdated ?? AS_OF)}</span>
           <span className="text-hairline-strong">·</span>
           <span>{polls.length} polls in trend</span>
         </div>
@@ -101,7 +104,7 @@ function Home() {
           </span>
           <span className="text-muted-ink">
             {" "}
-            at {leader.pct.toFixed(1)}% in the UK polling trend.
+            at <CountUp value={leader.pct} decimals={1} />% in the UK polling trend.
           </span>
         </h1>
         <p className="mt-5 text-lg text-body-ink max-w-3xl leading-relaxed">
@@ -112,7 +115,7 @@ function Home() {
       </section>
 
       {/* Trend */}
-      <section className="py-12 border-b border-hairline">
+      <Reveal as="section" className="py-12 border-b border-hairline space-y-6">
         <Card>
           <CardHeader
             title="Current voting intention"
@@ -123,11 +126,19 @@ function Home() {
             Δ shown vs. {fmtDate(lastEl.date)} General Election.
           </div>
         </Card>
-      </section>
+        <Card>
+          <CardHeader
+            title="Polling trend over time"
+            subtitle="Smoothed, reliability-weighted average. Hover a party to isolate it."
+            right={<LiveBadge fetching={isFetching} lastUpdated={lastUpdated} />}
+          />
+          <TrendChart polls={polls} partyIds={trend.map((t) => t.partyId).filter((id) => id !== "others")} />
+        </Card>
+      </Reveal>
 
       {/* Government & outlook */}
-      <section className="py-12 border-b border-hairline grid md:grid-cols-3 gap-6">
-        <Card className="p-6">
+      <Reveal as="section" className="py-12 border-b border-hairline grid md:grid-cols-3 gap-6 stagger">
+        <Card className="p-6 card-lift">
           <div className="text-xs font-mono uppercase tracking-wider text-muted-ink">
             Governing parties
           </div>
@@ -148,7 +159,9 @@ function Home() {
               );
             })}
           </div>
-          <div className="mt-5 font-mono text-4xl text-ink">{govPct}%</div>
+          <div className="mt-5 font-mono text-4xl text-ink">
+            <CountUp value={govPct} decimals={1} />%
+          </div>
           <div className="text-sm text-body-ink mt-1">
             of seats on current trend — <span className="font-mono">{govSeats}</span> of{" "}
             {country.parliamentSize}
@@ -163,7 +176,7 @@ function Home() {
             its majority.
           </div>
         </Card>
-        <Card className="p-6">
+        <Card className="p-6 card-lift">
           <div className="text-xs font-mono uppercase tracking-wider text-up">
             Gaining momentum · 90d
           </div>
@@ -184,7 +197,7 @@ function Home() {
             Largest weighted gain across the eight topline parties.
           </div>
         </Card>
-        <Card className="p-6">
+        <Card className="p-6 card-lift">
           <div className="text-xs font-mono uppercase tracking-wider text-down">
             Losing ground · 30d
           </div>
@@ -205,10 +218,10 @@ function Home() {
             Steepest short-term decline among the topline parties.
           </div>
         </Card>
-      </section>
+      </Reveal>
 
       {/* Next election */}
-      <section className="py-12 border-b border-hairline grid md:grid-cols-[1fr_1.3fr] gap-10 items-center">
+      <Reveal as="section" className="py-12 border-b border-hairline grid md:grid-cols-[1fr_1.3fr] gap-10 items-center">
         <div>
           <SectionTitle eyebrow="Election outlook" title="Next General Election: 2029." />
           <p className="mt-4 text-body-ink leading-relaxed">
@@ -283,10 +296,10 @@ function Home() {
             </Link>
           </div>
         </Card>
-      </section>
+      </Reveal>
 
       {/* Coalitions & FPTP explainer */}
-      <section className="py-12 border-b border-hairline space-y-8">
+      <Reveal as="section" className="py-12 border-b border-hairline space-y-8">
         <div className="max-w-xl">
           <SectionTitle eyebrow="Electoral system" title="First-past-the-post." />
           <p className="mt-4 text-body-ink leading-relaxed">
@@ -369,14 +382,14 @@ function Home() {
             </div>
           )}
         </Card>
-      </section>
+      </Reveal>
 
       {/* Latest polls */}
-      <section className="py-12 border-b border-hairline">
+      <Reveal as="section" className="py-12 border-b border-hairline">
         <div className="flex items-end justify-between gap-6 mb-6">
           <SectionTitle
             eyebrow="Latest polls at a glance"
-            title="The five most recent fieldwork dates."
+            title="The six most recent fieldwork dates."
           />
           <Link
             to="/polls"
@@ -385,14 +398,14 @@ function Home() {
             More polls →
           </Link>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
           {recentPolls.map((p) => {
             const inst = institutes.find((i) => i.id === p.instituteId)!;
             const top = Object.entries(p.results)
               .filter(([id]) => id !== "others")
               .sort((a, b) => (b[1] as number) - (a[1] as number));
             return (
-              <Card key={p.id} className="p-5">
+              <Card key={p.id} className="p-5 card-lift">
                 <div className="flex items-baseline justify-between">
                   <Link
                     to="/polls"
@@ -421,9 +434,9 @@ function Home() {
                         >
                           {party.abbr}
                         </Link>
-                        <div className="h-1.5 bg-canvas-soft rounded">
+                        <div className="h-1.5 bg-canvas-soft rounded overflow-hidden">
                           <div
-                            className="h-full rounded"
+                            className="h-full rounded bar-grow"
                             style={{
                               width: `${Math.min(100, (pct as number) * 2.6)}%`,
                               backgroundColor: partyColor(party),
@@ -445,10 +458,10 @@ function Home() {
             );
           })}
         </div>
-      </section>
+      </Reveal>
 
       {/* Ideology legend */}
-      <section className="py-12 border-b border-hairline">
+      <Reveal as="section" className="py-12 border-b border-hairline">
         <SectionTitle eyebrow="Key" title="Orientation legend." />
         <p className="mt-3 text-body-ink max-w-2xl leading-relaxed">
           Each party is classified on a single primary axis, used to colour bars and seat strips
@@ -460,10 +473,10 @@ function Home() {
         </p>
 
         {/* Left–right spectrum cards */}
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 stagger">
           {BLOC_LEGEND.filter(({ bloc }) => !["green", "regional"].includes(bloc)).map(
             ({ bloc, meaning }) => (
-              <div key={bloc} className="rounded border border-hairline overflow-hidden">
+              <div key={bloc} className="rounded border border-hairline overflow-hidden card-lift">
                 <div className="h-2" style={{ backgroundColor: BLOC_COLOR[bloc] }} />
                 <div className="p-2.5">
                   <div className="text-[11px] font-medium text-ink leading-tight">
@@ -513,7 +526,24 @@ function Home() {
         <div className="mt-5 text-xs text-muted-ink">
           Additional category tags used: Liberal · Green · Regional · Animal Welfare · Satire.
         </div>
-      </section>
+      </Reveal>
     </div>
+  );
+}
+
+function LiveBadge({ fetching, lastUpdated }: { fetching: boolean; lastUpdated: string | null }) {
+  if (!lastUpdated && !fetching) {
+    return <span className="text-[10px] font-mono uppercase tracking-wider text-muted-ink">Offline · seed data</span>;
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-ink whitespace-nowrap">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full rounded-full bg-up opacity-60 animate-ping" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-up" />
+      </span>
+      {fetching
+        ? "Updating…"
+        : `Live · ${new Date(lastUpdated!).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`}
+    </span>
   );
 }

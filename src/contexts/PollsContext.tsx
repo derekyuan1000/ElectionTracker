@@ -9,6 +9,10 @@ type PollsContextValue = {
   institutes: Institute[];
   isLoading: boolean;
   isError: boolean;
+  /** True once live data has arrived or the fetch has given up. */
+  isSettled: boolean;
+  /** True while a (background) refresh is in flight. */
+  isFetching: boolean;
   lastUpdated: string | null;
 };
 
@@ -17,6 +21,8 @@ const PollsContext = createContext<PollsContextValue>({
   institutes: seedInstitutes,
   isLoading: false,
   isError: false,
+  isSettled: true,
+  isFetching: false,
   lastUpdated: null,
 });
 
@@ -24,7 +30,10 @@ export function PollsProvider({ children }: { children: ReactNode }) {
   const query = useQuery({
     queryKey: ["wiki-polls"],
     queryFn: fetchWikipolls,
-    staleTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    // Keep the page live: re-pull Wikipedia every 5 minutes and on tab focus.
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
     retry: 2,
   });
 
@@ -41,6 +50,8 @@ export function PollsProvider({ children }: { children: ReactNode }) {
     institutes: mergedInstitutes,
     isLoading: query.isLoading,
     isError: query.isError,
+    isSettled: !query.isPending,
+    isFetching: query.isFetching,
     lastUpdated: query.data?.fetchedAt ?? null,
   };
 

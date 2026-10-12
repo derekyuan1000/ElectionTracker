@@ -14,7 +14,7 @@ export function SiteHeader() {
       <div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <span className="font-display text-xl tracking-tight text-ink">
-            <span className="text-brand">●</span> ElectionTracker
+            <span className="text-brand inline-block animate-pulse-dot">●</span> ElectionTracker
           </span>
         </Link>
         <nav className="flex items-center gap-1 text-sm">
@@ -23,8 +23,8 @@ export function SiteHeader() {
               key={item.label}
               to={item.to}
               activeOptions={{ exact: "exact" in item ? item.exact : false }}
-              activeProps={{ className: "text-ink bg-canvas-soft rounded-md" }}
-              className="px-3 py-1.5 text-body-ink hover:text-ink transition-colors rounded-md"
+              activeProps={{ className: "text-ink bg-canvas-soft rounded-md after:scale-x-100" }}
+              className="relative px-3 py-1.5 text-body-ink hover:text-ink transition-colors rounded-md after:absolute after:left-3 after:right-3 after:-bottom-px after:h-px after:bg-brand after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100"
             >
               {item.label}
             </Link>

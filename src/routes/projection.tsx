@@ -358,7 +358,7 @@ function ProjectionPage() {
   const majorityPct = (MAJORITY / TOTAL) * 100;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-6xl px-6 py-10 space-y-6 stagger">
       {/* Page title */}
       <div>
         <div className="flex items-center gap-3 text-xs font-mono uppercase tracking-widest text-muted-ink mb-3">

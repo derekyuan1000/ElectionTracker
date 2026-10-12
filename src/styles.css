@@ -1,5 +1,4 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
 @import "@fontsource/inter-tight/400.css";
 @import "@fontsource/inter-tight/500.css";
@@ -7,6 +6,7 @@
 @import "@fontsource/inter/500.css";
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -195,18 +195,134 @@
   body {
     background-color: var(--canvas);
     color: var(--ink);
-    font-family: var(--font-sans);
+    font-family: var(--font-sans), sans-serif;
     font-feature-settings: "ss01", "cv11";
   }
 
   h1, h2, h3, h4, h5 {
-    font-family: var(--font-display);
+    font-family: var(--font-display), sans-serif;
     font-weight: 400;
     letter-spacing: -0.02em;
     color: var(--ink);
   }
 
   .font-mono, code, pre, kbd, samp {
-    font-family: var(--font-mono);
+    font-family: var(--font-mono), monospace;
+  }
+}
+
+/*
+ * Motion. All animations are disabled under prefers-reduced-motion.
+ */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes reveal-x {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+
+@keyframes loader-bar {
+  0%, 100% { height: 18%; }
+  50% { height: 100%; }
+}
+
+@layer utilities {
+  .animate-rise {
+    animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-page-in {
+    animation: page-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-pulse-dot {
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+
+  .loader-bar {
+    height: 18%;
+    animation: loader-bar 1s ease-in-out infinite;
+  }
+
+  /* Horizontal bars grow from the left edge. */
+  .bar-grow {
+    transform-origin: left center;
+    animation: grow-x 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Wipe a whole strip in from the left (keeps children unscaled). */
+  .bar-reveal {
+    animation: reveal-x 1.1s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both;
+  }
+
+  /* Children rise in one after another. */
+  .stagger > * {
+    animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0.04s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.16s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.22s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.28s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.34s; }
+  .stagger > *:nth-child(7) { animation-delay: 0.4s; }
+  .stagger > *:nth-child(n + 8) { animation-delay: 0.46s; }
+
+  /* Scroll-triggered reveal; see components/site/Reveal.tsx. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Subtle lift for interactive cards. */
+  .card-lift {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: var(--hairline-strong);
+    box-shadow: 0 10px 30px -12px rgb(38 37 30 / 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
   }
 }

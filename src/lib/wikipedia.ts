@@ -45,7 +45,13 @@ const INST_MAP: Record<string, { id: string; reliability: number }> = {
 };
 
 function cleanText(el: Element): string {
-  return (el.textContent ?? "").replace(/\[[\w\s\d]+\]/g, "").trim();
+  // Strip inline <style>, citation markers and collapsed breakdowns
+  // (e.g. "Others 2%" cells that expand into per-party figures).
+  const clone = el.cloneNode(true) as Element;
+  clone
+    .querySelectorAll("style, sup.reference, .mw-collapsible-content")
+    .forEach((n) => n.remove());
+  return (clone.textContent ?? "").replace(/\[[\w\s\d]+\]/g, "").trim();
 }
 
 function parseFieldworkEnd(dateStr: string): string | null {
@@ -123,14 +129,26 @@ function headerCols(headerRow: Element): string[] {
   return cols;
 }
 
-function dataCells(row: Element): string[] {
+function dataCells(row: Element): { cells: string[]; els: (Element | null)[] } {
   const cells: string[] = [];
+  const els: (Element | null)[] = [];
   for (const td of Array.from(row.querySelectorAll("td"))) {
     const span = parseInt(td.getAttribute("colspan") ?? "1");
     cells.push(cleanText(td));
-    for (let i = 1; i < span; i++) cells.push("");
+    els.push(td);
+    for (let i = 1; i < span; i++) {
+      cells.push("");
+      els.push(null);
+    }
   }
-  return cells;
+  return { cells, els };
+}
+
+// Date cells carry the exact fieldwork end date as data-sort-value="YYYY-MM-DD";
+// the visible text (e.g. "4–5 Oct") omits the year.
+function sortValueDate(el: Element | null): string | null {
+  const v = el?.getAttribute("data-sort-value")?.trim() ?? "";
+  return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
 }
 
 // Area values accepted as GB-level national polls
@@ -159,13 +177,22 @@ export async function fetchWikipolls(): Promise<WikiPollResult> {
   if (!html) throw new Error("No HTML in Wikipedia response");
 
   const doc = new DOMParser().parseFromString(html, "text/html");
-  const tables = Array.from(doc.querySelectorAll("table.wikitable"));
-
   const polls: Poll[] = [];
   const instituteMap = new Map<string, Institute>();
   let pollIdx = 0;
 
-  for (const table of tables) {
+  // National polls live in one table per year, each under a "2026"/"2025"/…
+  // heading. Everything else (seat projections, regional, constituency,
+  // hypothetical scenarios) sits under non-year headings and is skipped.
+  let headingYear: string | null = null;
+  for (const node of Array.from(doc.querySelectorAll("h2, h3, h4, table.wikitable"))) {
+    if (node.tagName !== "TABLE") {
+      const text = cleanText(node);
+      headingYear = /^\d{4}$/.test(text) ? text : null;
+      continue;
+    }
+    if (!headingYear) continue;
+    const table = node;
     const rows = Array.from(table.querySelectorAll("tr"));
 
     let headerRow: Element | null = null;
@@ -214,7 +241,7 @@ export async function fetchWikipolls(): Promise<WikiPollResult> {
 
     for (const row of rows) {
       if (row.querySelectorAll("td").length < 3) continue;
-      const cells = dataCells(row);
+      const { cells, els } = dataCells(row);
 
       // Only include GB/UK national polls; non-GB areas are always excluded
       const area = (cells[areaCol] ?? "").toLowerCase().trim();
@@ -225,7 +252,9 @@ export async function fetchWikipolls(): Promise<WikiPollResult> {
       // Reject event rows (by-elections, political announcements etc.)
       if (/\belection\b|\bannounce|\bresign|\bhold\b|\bgain\b/i.test(rawFirm)) continue;
 
-      const fieldworkEnd = parseFieldworkEnd(cells[datesCol] ?? "");
+      const fieldworkEnd =
+        sortValueDate(els[datesCol] ?? null) ??
+        parseFieldworkEnd(`${cells[datesCol] ?? ""} ${headingYear}`);
       if (!fieldworkEnd) continue;
 
       const ageDays = (Date.now() - new Date(fieldworkEnd).getTime()) / 86400000;

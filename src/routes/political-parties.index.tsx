@@ -61,7 +61,7 @@ function PartiesIndex() {
   const [showHistorical, setShowHistorical] = useState(false);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-14 space-y-16">
+    <div className="mx-auto max-w-6xl px-6 py-14 space-y-16 stagger">
       <SectionTitle
         eyebrow="Parties directory"
         title="Every UK party, plotted and compared."
@@ -172,7 +172,7 @@ function PartiesIndex() {
                   params={{ party: p.id }}
                   className="block"
                 >
-                  <Card className="p-5 h-full hover:border-hairline-strong transition-colors">
+                  <Card className="p-5 h-full card-lift">
                     <div className="font-mono text-ink">{p.abbr}</div>
                     <div className="mt-2 font-display text-lg text-ink leading-tight">{p.name}</div>
                     <div className="mt-1 text-xs text-muted-ink">{p.spectrumLabel}</div>
@@ -193,7 +193,7 @@ function PartiesIndex() {
 function PartyCard({ party: p, trend }: { party: FullParty; trend: Map<string, number> }) {
   return (
     <Link to="/political-parties/$party" params={{ party: p.id }} className="block group">
-      <Card className="p-5 h-full border-hairline group-hover:border-hairline-strong group-hover:shadow-sm transition-all duration-150 cursor-pointer">
+      <Card className="p-5 h-full card-lift cursor-pointer">
         <div className="flex items-center justify-between">
           <div className="font-mono text-ink">{p.abbr}</div>
           <div className="flex items-center gap-2">

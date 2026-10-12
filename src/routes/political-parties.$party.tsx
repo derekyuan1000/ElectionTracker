@@ -56,7 +56,7 @@ function PartyDetail() {
   const mom = momMap.get(party.id);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12 space-y-12">
+    <div className="mx-auto max-w-5xl px-6 py-12 space-y-12 stagger">
       <div>
         <Link to="/political-parties" className="text-sm text-brand">
           ← All parties

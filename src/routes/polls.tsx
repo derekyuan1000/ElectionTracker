@@ -30,7 +30,7 @@ function PollsPage() {
   const visible = polls.slice(0, shown);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-14 space-y-14">
+    <div className="mx-auto max-w-6xl px-6 py-14 space-y-14 stagger">
       <SectionTitle
         eyebrow="Latest polls"
         title="Every Westminster voting-intention poll in the database."

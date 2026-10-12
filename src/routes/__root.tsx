@@ -4,16 +4,19 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "../components/site/SiteHeader";
 import { SiteFooter } from "../components/site/SiteFooter";
-import { PollsProvider } from "../contexts/PollsContext";
+import { PollsProvider, usePollsContext } from "../contexts/PollsContext";
+import { LoadingScreen } from "../components/site/LoadingScreen";
+import { useWikiLeadersQuery } from "../lib/useWikiLeaders";
 
 function NotFoundComponent() {
   return (
@@ -130,12 +133,40 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <PollsProvider>
-        <SiteHeader />
-        <main className="min-h-[60vh]">
-          <Outlet />
-        </main>
-        <SiteFooter />
+        <AppFrame />
       </PollsProvider>
     </QueryClientProvider>
+  );
+}
+
+// Never hold the splash longer than this, even if a request hangs.
+const MAX_SPLASH_MS = 10_000;
+
+function AppFrame() {
+  const { isSettled } = usePollsContext();
+  const leaders = useWikiLeadersQuery();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), MAX_SPLASH_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  const ready = timedOut || (isSettled && !leaders.isPending);
+
+  return (
+    <>
+      <LoadingScreen visible={!ready} />
+      {ready && (
+        <>
+          <SiteHeader />
+          <main key={pathname} className="min-h-[60vh] animate-page-in">
+            <Outlet />
+          </main>
+          <SiteFooter />
+        </>
+      )}
+    </>
   );
 }

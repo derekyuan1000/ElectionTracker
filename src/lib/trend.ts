@@ -190,6 +190,48 @@ export function trendSeries(_country?: string, customPolls?: Poll[]) {
   });
 }
 
+/**
+ * Smoothed polling average sampled every `stepDays` over the last `days`.
+ * Each point is a Gaussian-kernel weighted mean of nearby polls (σ ≈ 7 days),
+ * also weighted by institute reliability.
+ */
+export function rollingTrendSeries(customPolls?: Poll[], days = 365, stepDays = 3) {
+  const ps = polledParties().filter((p) => p.id !== "others");
+  const inst = Object.fromEntries(ALL_INST.map((i) => [i.id, i]));
+  const polls = (customPolls ?? ALL_POLLS).map((p) => ({ p, age: ageDays(p.fieldworkEnd) }));
+  const sigma = 7;
+  const rows: Record<string, number | string>[] = [];
+  for (let age = days; age >= 0; age -= stepDays) {
+    const d = today();
+    d.setDate(d.getDate() - age);
+    const row: Record<string, number | string> = { date: d.toISOString().slice(0, 10) };
+    let any = false;
+    for (const party of ps) {
+      let wsum = 0,
+        wxsum = 0;
+      for (const { p: poll, age: pa } of polls) {
+        // Only use polls fielded on or before this date (no peeking ahead).
+        if (pa < age) continue;
+        const dist = pa - age;
+        if (dist > sigma * 3) continue;
+        const v = poll.results[party.id];
+        if (v == null) continue;
+        const w =
+          Math.exp(-(dist * dist) / (2 * sigma * sigma)) *
+          ((inst[poll.instituteId]?.reliability ?? 72) / 100);
+        wsum += w;
+        wxsum += w * v;
+      }
+      if (wsum > 0.05) {
+        row[party.id] = +(wxsum / wsum).toFixed(1);
+        any = true;
+      }
+    }
+    if (any) rows.push(row);
+  }
+  return rows;
+}
+
 function monthLabel(monthsAgo: number): string {
   const d = today();
   d.setMonth(d.getMonth() - monthsAgo);

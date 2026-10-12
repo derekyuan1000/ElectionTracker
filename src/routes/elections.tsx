@@ -29,7 +29,7 @@ function ElectionsPage() {
   const uk = elections["united-kingdom"];
   const wikiLeaders = useWikiLeaders();
   return (
-    <div className="mx-auto max-w-5xl px-6 py-14 space-y-12">
+    <div className="mx-auto max-w-5xl px-6 py-14 space-y-12 stagger">
       <SectionTitle
         eyebrow="Elections & history"
         title="Latest election results and historic outcomes."

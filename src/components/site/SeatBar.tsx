@@ -20,7 +20,7 @@ export function SeatBar({
         <div className="absolute -top-5 text-[10px] font-mono text-ink whitespace-nowrap -translate-x-1/2" style={{ left: `${majorityPct}%` }}>
           majority · {majority}
         </div>
-      <div className="relative h-10 w-full bg-canvas-soft border border-hairline rounded-md overflow-hidden flex">
+      <div className="relative h-10 w-full bg-canvas-soft border border-hairline rounded-md overflow-hidden flex bar-reveal">
         {sorted.map(([id, s]) => {
           const p = partyById(id);
           if (!p) return null;
@@ -30,7 +30,7 @@ export function SeatBar({
               key={id}
               style={{ width: `${w}%`, backgroundColor: partyColor(p) }}
               title={`${p.abbr} — ${s} seats`}
-              className="border-r border-white/40 last:border-r-0 flex items-center justify-center text-[10px] font-mono text-ink/80"
+              className="border-r border-white/40 last:border-r-0 flex items-center justify-center text-[10px] font-mono text-ink/80 transition-[width,filter] duration-700 hover:brightness-110"
             >
               {w > 6 ? p.abbr : ""}
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export type WikiLeaders = {
   monarch: string | null;
@@ -42,33 +42,35 @@ async function fetchWikiLeaders(): Promise<WikiLeaders> {
 
 const CACHE_KEY = "et_wiki_leaders";
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const EMPTY: WikiLeaders = { monarch: null, pm: null };
+
+async function loadWikiLeaders(): Promise<WikiLeaders> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) {
+      const { data, ts } = JSON.parse(raw) as { data: WikiLeaders; ts: number };
+      if (Date.now() - ts < CACHE_TTL) return data;
+    }
+  } catch {}
+
+  const data = await fetchWikiLeaders().catch(() => EMPTY);
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+  } catch {}
+  return data;
+}
+
+export function useWikiLeadersQuery() {
+  return useQuery({
+    queryKey: ["wiki-leaders"],
+    queryFn: loadWikiLeaders,
+    staleTime: CACHE_TTL,
+    retry: 1,
+  });
+}
 
 export function useWikiLeaders(): WikiLeaders {
-  const [leaders, setLeaders] = useState<WikiLeaders>({ monarch: null, pm: null });
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      if (raw) {
-        const { data, ts } = JSON.parse(raw) as { data: WikiLeaders; ts: number };
-        if (Date.now() - ts < CACHE_TTL) {
-          setLeaders(data);
-          return;
-        }
-      }
-    } catch {}
-
-    fetchWikiLeaders()
-      .then((data) => {
-        setLeaders(data);
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
-        } catch {}
-      })
-      .catch(() => {});
-  }, []);
-
-  return leaders;
+  return useWikiLeadersQuery().data ?? EMPTY;
 }
 
 export function pmNamesMatch(wikiName: string, seedName: string): boolean {

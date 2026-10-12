@@ -26,10 +26,10 @@ export function TrendBar({
             key={t.partyId}
             to="/political-parties/$party"
             params={{ party: p.id }}
-            className="grid grid-cols-[90px_1fr_70px_60px] items-center gap-4 px-6 py-3 hover:bg-canvas-soft transition-colors"
+            className="group grid grid-cols-[90px_1fr_70px_60px] items-center gap-4 px-6 py-3 hover:bg-canvas-soft transition-colors"
           >
             <div className="text-sm">
-              <div className="text-ink font-mono">{p.abbr}</div>
+              <div className="text-ink font-mono group-hover:text-brand transition-colors">{p.abbr}</div>
               <div className="text-[10px] text-muted-ink uppercase tracking-wider">
                 {BLOC_LABEL[p.bloc]}
               </div>
@@ -40,8 +40,8 @@ export function TrendBar({
                 style={{ left: `${moeLeft}%`, width: `${moeWidth}%` }}
               />
               <div
-                className="absolute top-0 bottom-0 rounded"
-                style={{ width: `${w}%`, backgroundColor: partyColor(p), opacity: 0.85 }}
+                className="absolute top-0 bottom-0 rounded bar-grow opacity-85 group-hover:opacity-100 transition-[width,opacity] duration-700"
+                style={{ width: `${w}%`, backgroundColor: partyColor(p) }}
               />
             </div>
             <div className="text-right font-mono text-ink">{t.pct.toFixed(1)}%</div>
