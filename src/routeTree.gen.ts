@@ -9,27 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProjectionRouteImport } from './routes/projection'
-import { Route as PollsRouteImport } from './routes/polls'
-import { Route as PoliticalPartiesRouteImport } from './routes/political-parties'
-import { Route as ElectionsRouteImport } from './routes/elections'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ElectionsRouteImport } from './routes/elections'
+import { Route as PoliticalPartiesRouteImport } from './routes/political-parties'
+import { Route as PollsRouteImport } from './routes/polls'
+import { Route as ProjectionRouteImport } from './routes/projection'
 import { Route as PoliticalPartiesIndexRouteImport } from './routes/political-parties.index'
 import { Route as PoliticalPartiesPartyRouteImport } from './routes/political-parties.$party'
 
-const ProjectionRoute = ProjectionRouteImport.update({
-  id: '/projection',
-  path: '/projection',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PollsRoute = PollsRouteImport.update({
-  id: '/polls',
-  path: '/polls',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PoliticalPartiesRoute = PoliticalPartiesRouteImport.update({
-  id: '/political-parties',
-  path: '/political-parties',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ElectionsRoute = ElectionsRouteImport.update({
@@ -37,9 +27,19 @@ const ElectionsRoute = ElectionsRouteImport.update({
   path: '/elections',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PoliticalPartiesRoute = PoliticalPartiesRouteImport.update({
+  id: '/political-parties',
+  path: '/political-parties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PollsRoute = PollsRouteImport.update({
+  id: '/polls',
+  path: '/polls',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectionRoute = ProjectionRouteImport.update({
+  id: '/projection',
+  path: '/projection',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticalPartiesIndexRoute = PoliticalPartiesIndexRouteImport.update({
@@ -119,25 +119,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/projection': {
-      id: '/projection'
-      path: '/projection'
-      fullPath: '/projection'
-      preLoaderRoute: typeof ProjectionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/polls': {
-      id: '/polls'
-      path: '/polls'
-      fullPath: '/polls'
-      preLoaderRoute: typeof PollsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/political-parties': {
-      id: '/political-parties'
-      path: '/political-parties'
-      fullPath: '/political-parties'
-      preLoaderRoute: typeof PoliticalPartiesRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/elections': {
@@ -147,11 +133,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ElectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/political-parties': {
+      id: '/political-parties'
+      path: '/political-parties'
+      fullPath: '/political-parties'
+      preLoaderRoute: typeof PoliticalPartiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/polls': {
+      id: '/polls'
+      path: '/polls'
+      fullPath: '/polls'
+      preLoaderRoute: typeof PollsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projection': {
+      id: '/projection'
+      path: '/projection'
+      fullPath: '/projection'
+      preLoaderRoute: typeof ProjectionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/political-parties/': {
