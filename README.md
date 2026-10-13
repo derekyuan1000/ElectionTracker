@@ -16,39 +16,48 @@ A web app for tracking election results, polling and seat projections in one pla
 
 | Layer | Tech |
 |---|---|
-| Frontend | HTML, CSS, JavaScript |
-| Backend | Node.js |
-| Data | JSON / CSV sources, cached locally |
+| Framework | TanStack Start (React 19, TanStack Router) |
+| Language | TypeScript |
+| Build | Vite |
+| Styling | Tailwind CSS 4, Radix UI |
+| Charts | Recharts |
+| Data | Seed data in `src/data/seed.ts` |
 | Hosting | Vercel |
 
 ## Getting started
 
+Requires Node.js 20+ (or [Bun](https://bun.sh)).
+
 ```bash
-git clone https://github.com/derekyuan1000/election-tracker.git
-cd election-tracker
+git clone https://github.com/derekyuan1000/ElectionTracker.git
+cd ElectionTracker
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open the local URL printed in the terminal. No environment variables are needed.
 
-## Configuration
+### Scripts
 
-| Variable | Description |
+| Command | What it does |
 |---|---|
-| `PORT` | Server port (default `3000`) |
-| `DATA_SOURCE_URL` | Base URL of the results/polling data feed |
-| `CACHE_TTL` | Seconds to cache upstream data (default `300`) |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build (Vercel preset) |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format with Prettier |
 
 ## Project structure
 
 ```
-election-tracker/
-├── public/        # Static frontend
-├── src/           # Server and data-processing code
-├── data/          # Cached and historical datasets
-└── .env.example
+ElectionTracker/
+├── public/        # Icons and web manifest
+└── src/
+    ├── routes/    # File-based routes (elections, polls, projection, parties)
+    ├── components/
+    ├── data/      # Seed data and types
+    ├── lib/       # Formatting, trend and Wikipedia helpers
+    └── contexts/
 ```
 
 ## How projections work
@@ -64,7 +73,7 @@ Seat projections are calculated from vote share using uniform national swing app
 
 ## Contributing
 
-Open an issue first for anything sizeable. Then branch, make one focused change per pull request, and open the PR against `main`.
+Open an issue first for anything sizeable. Then branch, make one focused change per pull request, and open the PR against `master`.
 
 ## Data sources
 
